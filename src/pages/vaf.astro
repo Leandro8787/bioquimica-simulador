@@ -1,0 +1,382 @@
+---
+import { PV, corre, anioCruce, ESC_F7, OVERHEAD_ESC } from '../lib/modelVaf.js';
+
+const base   = corre();                                              // base conservador, 5 años
+const base7  = corre({ H: 7 });
+const base10 = corre({ H: 10 });
+const baseF  = corre({ r1: 0.81, r2: 0.82, arancel0: 4_686_000, nuevos: 35 });
+const baseF7 = corre({ r1: 0.81, r2: 0.82, arancel0: 4_686_000, nuevos: 35, H: 7 });
+const cruce  = anioCruce();
+
+const fmt  = (x) => (x < 0 ? '-' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('de-DE');
+const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' M';
+const horizontes = [5, 6, 7, 8, 10];
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Metodología VAF — Carrera de Bioquímica</title>
+</head>
+<body>
+  <nav class="tabs"><div class="wrap">
+    <a href={import.meta.env.BASE_URL} class="tab">Metodología FCNE</a>
+    <a href={import.meta.env.BASE_URL + 'vaf/'} class="tab active">Metodología VAF</a>
+  </div></nav>
+
+  <header class="hero vaf">
+    <div class="wrap">
+      <p class="eyebrow">Vicerrectoría de Administración y Finanzas · Método de evaluación</p>
+      <h1>Bioquímica bajo el método de la<br /><span>Dirección General de Finanzas</span></h1>
+      <p class="lead">Evaluación con la metodología de la VAF: horizonte de 5 años, tasa social de descuento de 5,5%, provisión de no pago de 20%, overhead institucional imputado (Facultad + Administración Central) y docencia a costo marginal. Ajusta los supuestos para reproducir el cálculo del informe.</p>
+      <div class="badges">
+        <div class="badge"><span class="k">VAN 5 años · base conservador</span><b id="h-v5">{fmtM(base.van)}</b></div>
+        <div class="badge"><span class="k">VAN 5 años · base Finanzas §7</span><b>{fmtM(baseF.van)}</b></div>
+        <div class="badge"><span class="k">VAN 7 años · base conservador</span><b>{fmtM(base7.van)}</b></div>
+        <div class="badge"><span class="k">Año de cruce a VAN ≥ 0</span><b>Año {cruce}</b></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ============ SIMULADOR ============ -->
+    <section id="sim" class="card">
+      <h2>1 · Simulador (método VAF)</h2>
+      <p class="muted">Absorción total de overhead con factor marginal. El año base se imputa al 100%; el crecimiento posterior, al porcentaje marginal. Prueba los presets o mueve los controles.</p>
+      <div class="presets">
+        <button id="p-cons" type="button">Base conservador (nuestro)</button>
+        <button id="p-fin" type="button" class="alt">Base Finanzas §7</button>
+      </div>
+      <div class="sim-grid">
+        <div class="controls">
+          <label>Horizonte de evaluación <output id="o-H">5 años</output>
+            <input id="v-H" type="range" min="5" max="10" step="1" value="5" /></label>
+          <label>Vacantes / año <output id="o-vac">30</output>
+            <input id="v-vac" type="range" min="10" max="60" step="1" value="30" /></label>
+          <label>Retención año 1 <output id="o-r1">80%</output>
+            <input id="v-r1" type="range" min="60" max="95" step="1" value="80" /></label>
+          <label>Retención años 2+ <output id="o-r2">83%</output>
+            <input id="v-r2" type="range" min="60" max="95" step="1" value="83" /></label>
+          <label>Arancel anual <output id="o-arancel">$4.500.000</output>
+            <input id="v-arancel" type="range" min="3500000" max="6000000" step="50000" value="4500000" /></label>
+          <label>Provisión de no pago <output id="o-nopago">20%</output>
+            <input id="v-nopago" type="range" min="0" max="30" step="1" value="20" /></label>
+          <label>Factor marginal overhead Facultad <output id="o-fFac">15%</output>
+            <input id="v-fFac" type="range" min="0" max="100" step="5" value="15" /></label>
+          <label>Factor marginal overhead Central <output id="o-fCen">10%</output>
+            <input id="v-fCen" type="range" min="0" max="100" step="5" value="10" /></label>
+          <label>Docencia marginal / alumno-año <output id="o-doc">$550.000</output>
+            <input id="v-doc" type="range" min="300000" max="900000" step="25000" value="550000" /></label>
+          <label>Tasa social de descuento <output id="o-disc">5,5%</output>
+            <input id="v-disc" type="range" min="4" max="8" step="0.5" value="5.5" /></label>
+        </div>
+
+        <div class="results">
+          <div class="kpis">
+            <div class="kpi big"><span>VAN al horizonte elegido</span><b id="r-van">{fmt(base.van)}</b></div>
+            <div class="kpi"><span>VAN 5 años</span><b id="r-v5">{fmt(base.van)}</b></div>
+            <div class="kpi"><span>VAN 7 años</span><b id="r-v7">{fmt(base7.van)}</b></div>
+            <div class="kpi"><span>TIR</span><b id="r-tir">—</b></div>
+            <div class="kpi"><span>Matrícula régimen</span><b id="r-reg">{Math.round(base.regimen)}</b></div>
+            <div class="kpi"><span>Cruce a VAN ≥ 0</span><b id="r-cruce">Año {cruce}</b></div>
+          </div>
+          <div id="vchart" class="chart"></div>
+          <div class="tablewrap">
+            <table id="vproj">
+              <thead><tr><th>Año</th><th>Mat.</th><th>Ingreso neto</th><th>Costos dir.</th><th>Overhead</th><th>Flujo</th><th>Acumulado</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ METODOLOGIA ============ -->
+    <section class="card">
+      <h2>2 · Cómo se calcula, paso a paso</h2>
+      <p class="muted">El resultado del proyecto se obtiene en cuatro pasos. Los ejemplos se evalúan en vivo con los valores del simulador (año 1).</p>
+
+      <div class="step">
+        <h3>Paso 1 — Ingresos con 20% de no pago</h3>
+        <code>Ingreso neto = Matrícula × (arancel + derecho) × (1 − provisión de no pago)</code>
+        <p>La provisión de no pago descuenta un porcentaje plano (20%) sobre el ingreso bruto proyectado.</p>
+        <p class="live">Año 1: <b id="w-mat"></b> × (<b id="w-arancel"></b> + $150.000) × (1 − <b id="w-nopago"></b>) = <b id="w-neto" class="rr"></b></p>
+      </div>
+
+      <div class="step">
+        <h3>Paso 2 — Costos directos (docencia a costo marginal)</h3>
+        <code>Costos dir. = docencia marginal + coordinación/técnico/bioseguridad + laboratorio + otros</code>
+        <p>La docencia se valoriza a un costo marginal por alumno-año, según la estructura de costeo por asignatura.</p>
+        <p class="live">Año 1: <b id="w-doc"></b> + <b id="w-sop"></b> + <b id="w-lab"></b> + <b id="w-otros"></b> = <b id="w-cos" class="rr"></b></p>
+      </div>
+
+      <div class="step">
+        <h3>Paso 3 — Overhead institucional absorbido</h3>
+        <code>Ajustadoₙ = base₁ + factor × (proporcionalₙ − proporcional₁)</code>
+        <p>Proporcional = costo por alumno × matrícula. El <b>año base se absorbe al 100%</b> ($3.356.886/alumno Facultad + $2.495.742/alumno Central) y el crecimiento posterior solo al factor marginal (15% / 10%).</p>
+        <p class="live">Año 1: overhead Facultad <b id="w-fac"></b> + Central <b id="w-cen"></b> = <b id="w-oh" class="rr"></b></p>
+      </div>
+
+      <div class="step">
+        <h3>Paso 4 — Flujo y VAN (tasa social 5,5%)</h3>
+        <code>Flujoₙ = Ingreso neto − Costos dir. − Overhead    ·    VAN = −Inversión + Σ Flujoₙ / (1+d)ⁿ</code>
+        <p class="live">Año 1: <b id="w-netob"></b> − <b id="w-cosb"></b> − <b id="w-ohb"></b> = <b id="w-flujo" class="rr"></b>. VAN al horizonte = <b id="w-van"></b>.</p>
+      </div>
+    </section>
+
+    <!-- ============ ESCENARIOS §7 ============ -->
+    <section class="card">
+      <h2>3 · Escenarios que Finanzas prescribe para Bioquímica (§7)</h2>
+      <p class="muted">El informe preliminar de la VAF (junio 2026, §7) define para Bioquímica los rangos de retención, arancel y matrícula de los escenarios conservador, base y optimista. La tabla aplica el método de costeo de la VAF a cada uno.</p>
+      <div class="tablewrap"><table class="data"><thead>
+        <tr><th>Escenario (Finanzas §7)</th><th>Retención</th><th>Arancel</th><th>Vac.</th><th>VAN 5 años</th><th>VAN 7 años</th></tr></thead>
+        <tbody>{ESC_F7.map(e => {
+          const r5 = corre({ ...e.p, H: 5 }), r7 = corre({ ...e.p, H: 7 });
+          return <tr class={e.nombre === 'Base Finanzas' ? 'hl' : ''}>
+            <td>{e.nombre}</td><td class="num">{e.ret}</td><td class="num">{e.arancel}</td><td class="num">{e.vac}</td>
+            <td class={'num ' + (r5.van >= 0 ? 'pos' : 'neg')}>{fmt(r5.van)}</td>
+            <td class={'num ' + (r7.van >= 0 ? 'pos' : 'neg')}>{fmt(r7.van)}</td></tr>;
+        })}</tbody></table></div>
+      <p class="note">Rangos definidos por la VAF (§7): retención base 80%-82% (optimista sobre 83%); arancel base entre UVM ($4.686.000) y PUCV ($5.665.000); matrícula de apertura 30-40 estudiantes; resultado esperado base «equilibrio hacia consolidación de cohortes».</p>
+    </section>
+
+    <!-- ============ SENSIBILIDAD ============ -->
+    <section class="card">
+      <h2>4 · Sensibilidad</h2>
+      <h3>Horizonte de evaluación (base conservador)</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Horizonte</th><th>VAN</th><th>TIR</th></tr></thead>
+        <tbody>{horizontes.map(H => {
+          const r = corre({ H });
+          return <tr class={r.van >= 0 ? '' : 'neg'}>
+            <td class="num">{H} años</td><td class={'num ' + (r.van >= 0 ? 'pos' : 'neg')}>{fmt(r.van)}</td>
+            <td class="num">{r.tir == null ? 'no calc.' : (r.tir * 100).toFixed(1) + '%'}</td></tr>;
+        })}</tbody></table></div>
+      <p class="note">El VAN cambia de signo en el año {cruce}. La matrícula alcanza su régimen (~104 estudiantes) en el año 5, coherente con una malla de 10 semestres.</p>
+
+      <h3>Supuesto de overhead (5 y 7 años)</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Escenario de overhead</th><th>VAN 5 años</th><th>VAN 7 años</th></tr></thead>
+        <tbody>{OVERHEAD_ESC.map(o => {
+          const r5 = corre({ fFac: o.fFac, fCen: o.fCen, H: 5 }), r7 = corre({ fFac: o.fFac, fCen: o.fCen, H: 7 });
+          return <tr class={o.nombre === 'Sin costo marginal' ? 'hl' : ''}>
+            <td>{o.nombre}</td>
+            <td class={'num ' + (r5.van >= 0 ? 'pos' : 'neg')}>{fmt(r5.van)}</td>
+            <td class={'num ' + (r7.van >= 0 ? 'pos' : 'neg')}>{fmt(r7.van)}</td></tr>;
+        })}</tbody></table></div>
+      <p class="note">El escenario «sin costo marginal» supone que el overhead institucional no aumenta con la incorporación de la carrera; el escenario «proporcional 100%» imputa el gasto promedio completo. Entre ambos se aplican los factores marginales de 15% (Facultad) y 10% (Central).</p>
+    </section>
+
+    <!-- ============ CONCLUSIONES ============ -->
+    <section class="card">
+      <h2>5 · Conclusiones de la evaluación</h2>
+      <p class="live"><b>Dictamen técnico:</b> VIABLE bajo los escenarios prescritos por la DGF para Bioquímica; equilibrio en el escenario base y positivo al horizonte natural de la carrera.</p>
+      <p>Se concluye que el proyecto de creación de la carrera de Bioquímica es viable económicamente bajo los escenarios que la Dirección General de Finanzas prescribe para esta carrera, aplicando su propia metodología de evaluación:</p>
+      <ul class="fuentes">
+        <li>La carrera presenta un margen de contribución positivo en todos los años, creciente hacia la consolidación de cohortes.</li>
+        <li>En el escenario base definido por la VAF (retención 80%-82%, arancel entre UVM y PUCV), el VAN a 5 años alcanza el equilibrio ({fmt(baseF.van)}) y +{fmtM(baseF7.van)} a 7 años.</li>
+        <li>En el escenario base conservador de este informe (arancel $4.500.000 y 30 vacantes), el VAN a 5 años es {fmt(base.van)}, cruzando a positivo en el año {cruce}, con +{fmtM(base7.van)} a 7 años y +{fmtM(base10.van)} a 10 años.</li>
+        <li>El signo negativo a 5 años obedece al truncamiento del horizonte: una carrera de 10 semestres alcanza su régimen recién en el año 5.</li>
+        <li>En el escenario sin costo marginal adicional de overhead, el VAN es positivo ya a 5 años.</li>
+      </ul>
+    </section>
+
+    <!-- ============ FUENTES ============ -->
+    <section class="card">
+      <h2>6 · Fuentes del método</h2>
+      <ul class="fuentes">
+        <li><b>Ratios de overhead y regla de ajuste marginal:</b> Informe de Factibilidad Económica «Pedagogía en Ciencias Naturales para la Vida Sostenible», Dirección General de Finanzas, julio 2026.</li>
+        <li><b>Retención, arancel y matrícula prescritos:</b> Informe de Antecedentes para la Factibilidad Económica — Bioquímica, Dirección General de Finanzas, junio 2026 (§7).</li>
+        <li><b>Costos directos e inversión:</b> modelo económico de Bioquímica (vista FCNE).</li>
+      </ul>
+      <p class="note">Simulación reproducible. Documento complementario de resistencia; no sustituye los informes de la carrera ni constituye dictamen oficial de la VAF.</p>
+    </section>
+  </main>
+
+  <footer><div class="wrap">Metodología VAF · Carrera de Bioquímica · {new Date().getFullYear()}</div></footer>
+
+  <script>
+    import { PV, corre, anioCruce } from '../lib/modelVaf.js';
+    const $ = (id) => document.getElementById(id);
+    const fmt  = (x) => (x < 0 ? '-' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('de-DE');
+    const M = (v) => (v / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 0 });
+
+    function readP() {
+      const p = { ...PV };
+      p.H = +$('v-H').value;
+      p.nuevos = +$('v-vac').value;
+      p.r1 = +$('v-r1').value / 100;
+      p.r2 = +$('v-r2').value / 100;
+      p.arancel0 = +$('v-arancel').value;
+      p.nopago = +$('v-nopago').value / 100;
+      p.fFac = +$('v-fFac').value / 100;
+      p.fCen = +$('v-fCen').value / 100;
+      p.docEst = +$('v-doc').value;
+      p.disc = +$('v-disc').value / 100;
+      return p;
+    }
+
+    let lastRows = null;
+    function drawChart(rows) {
+      lastRows = rows;
+      const el = $('vchart');
+      const W = Math.max(Math.round(el.clientWidth) || 720, 300);
+      const H = W < 520 ? 280 : 340;
+      const pad = { l: 46, r: 14, t: 26, b: 30 };
+      const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      const vals = rows.map(r => r.flujo).concat(rows.map(r => r.acum));
+      const mx = Math.max(...vals, 0), mn = Math.min(...vals, 0);
+      const span = (mx - mn) * 1.15 || 1;
+      const colW = iw / rows.length;
+      const x = (i) => pad.l + (i + 0.5) * colW;
+      const y = (v) => pad.t + ih - ((v - mn) / span) * ih;
+      const y0 = y(0), bw = Math.min(colW * 0.42, 34);
+      const showLab = colW >= 42, fs = colW < 60 ? 8 : 9;
+      let bars = '', line = '', dots = '', lbl = '', vlab = '';
+      rows.forEach((r, i) => {
+        const cx = x(i), yy = y(r.flujo);
+        const col = r.flujo >= 0 ? '#0a7a34' : '#c0392b';
+        bars += `<rect x="${cx - bw / 2}" y="${Math.min(yy, y0)}" width="${bw}" height="${Math.abs(yy - y0)}" rx="2" fill="${col}"/>`;
+        line += (i ? 'L' : 'M') + cx + ' ' + y(r.acum) + ' ';
+        dots += `<circle cx="${cx}" cy="${y(r.acum)}" r="3" fill="#2a78d6"/>`;
+        lbl += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#898781">${r.n}</text>`;
+        if (showLab) vlab += `<text x="${cx}" y="${r.flujo >= 0 ? yy - 4 : yy + 12}" text-anchor="middle" font-size="${fs}" fill="${col}" font-weight="700">${M(r.flujo)}</text>`;
+      });
+      el.innerHTML =
+        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Flujo y caja acumulada">
+          <line x1="${pad.l}" y1="${y0}" x2="${W - pad.r}" y2="${y0}" stroke="#b9c4d0"/>
+          ${bars}<path d="${line}" fill="none" stroke="#2a78d6" stroke-width="2"/>${dots}${lbl}${vlab}
+          <text x="${pad.l - 8}" y="14" font-size="10" fill="#898781">Millones de $ (CLP)</text></svg>
+        <div class="legend"><span><i style="background:#0a7a34"></i>Flujo (+)</span><span><i style="background:#c0392b"></i>Flujo (−)</span><span><i style="background:#2a78d6"></i>Caja acumulada</span></div>`;
+    }
+
+    function update() {
+      const p = readP(), r = corre(p);
+      $('o-H').textContent = p.H + ' años';
+      $('o-vac').textContent = p.nuevos;
+      $('o-r1').textContent = Math.round(p.r1 * 100) + '%';
+      $('o-r2').textContent = Math.round(p.r2 * 100) + '%';
+      $('o-arancel').textContent = fmt(p.arancel0);
+      $('o-nopago').textContent = Math.round(p.nopago * 100) + '%';
+      $('o-fFac').textContent = Math.round(p.fFac * 100) + '%';
+      $('o-fCen').textContent = Math.round(p.fCen * 100) + '%';
+      $('o-doc').textContent = fmt(p.docEst);
+      $('o-disc').textContent = (p.disc * 100).toFixed(1).replace('.', ',') + '%';
+
+      const v5 = corre({ ...p, H: 5 }).van, v7 = corre({ ...p, H: 7 }).van;
+      const cr = anioCruce(p);
+      $('r-van').textContent = fmt(r.van);
+      $('r-van').className = 'kpi-b ' + (r.van >= 0 ? 'pos' : 'neg');
+      $('r-v5').textContent = fmt(v5); $('r-v5').className = 'kpi-b ' + (v5 >= 0 ? 'pos' : 'neg');
+      $('r-v7').textContent = fmt(v7); $('r-v7').className = 'kpi-b ' + (v7 >= 0 ? 'pos' : 'neg');
+      $('r-tir').textContent = r.tir == null ? 'no calc.' : (r.tir * 100).toFixed(1) + '%';
+      $('r-reg').textContent = Math.round(r.regimen);
+      $('r-cruce').textContent = cr == null ? '> 12 años' : 'Año ' + cr;
+      $('h-v5').textContent = fmt(v5);
+
+      const tb = document.querySelector('#vproj tbody');
+      tb.innerHTML = r.filas.map(f =>
+        `<tr><td class="num">${f.n}</td><td class="num">${Math.round(f.mat)}</td><td class="num">${fmt(f.neto)}</td><td class="num">${fmt(f.costosDir)}</td><td class="num">${fmt(f.oh)}</td><td class="num ${f.flujo >= 0 ? 'pos' : 'neg'}">${fmt(f.flujo)}</td><td class="num ${f.acum >= 0 ? 'pos' : 'neg'}">${fmt(f.acum)}</td></tr>`).join('');
+      drawChart(r.filas);
+
+      // memoria de cálculo (año 1)
+      const f1 = r.filas[0];
+      const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+      set('w-mat', Math.round(f1.mat)); set('w-arancel', fmt(f1.arancel));
+      set('w-nopago', Math.round(p.nopago * 100) + '%'); set('w-neto', fmt(f1.neto)); set('w-netob', fmt(f1.neto));
+      set('w-doc', fmt(f1.docencia)); set('w-sop', fmt(f1.soporte)); set('w-lab', fmt(f1.lab));
+      set('w-otros', fmt(f1.otros)); set('w-cos', fmt(f1.costosDir)); set('w-cosb', fmt(f1.costosDir));
+      set('w-fac', fmt(f1.fac)); set('w-cen', fmt(f1.cen)); set('w-oh', fmt(f1.oh)); set('w-ohb', fmt(f1.oh));
+      set('w-flujo', fmt(f1.flujo)); set('w-van', fmt(r.van));
+    }
+
+    function setVals(o) { for (const k in o) $(k).value = o[k]; update(); }
+    $('p-cons').addEventListener('click', () => setVals({ 'v-H': 5, 'v-vac': 30, 'v-r1': 80, 'v-r2': 83, 'v-arancel': 4500000, 'v-nopago': 20, 'v-fFac': 15, 'v-fCen': 10, 'v-doc': 550000, 'v-disc': 5.5 }));
+    $('p-fin').addEventListener('click', () => setVals({ 'v-H': 5, 'v-vac': 35, 'v-r1': 81, 'v-r2': 82, 'v-arancel': 4686000, 'v-nopago': 20, 'v-fFac': 15, 'v-fCen': 10, 'v-doc': 550000, 'v-disc': 5.5 }));
+
+    let rT;
+    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (lastRows) drawChart(lastRows); }, 150); });
+    document.querySelectorAll('#sim input').forEach(el => el.addEventListener('input', update));
+    update();
+  </script>
+
+  <style is:global>
+    :root{--navy:#003366;--blue:#2a78d6;--ink:#12233a;--muted:#5b6b7c;--line:#e3e8ef;--card:#fff;--bg:#f4f7fb;--pos:#0a7a34;--neg:#c0392b}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.55}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 32px}
+    a{color:var(--blue)}
+    .tabs{background:#00284d;border-bottom:3px solid var(--blue);position:sticky;top:0;z-index:30}
+    .tabs .wrap{display:flex;gap:4px}
+    .tab{color:#bcd4ee;text-decoration:none;padding:13px 22px;font-weight:600;font-size:.92rem;border-bottom:3px solid transparent;margin-bottom:-3px;transition:.15s}
+    .tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+    .tab.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.12)}
+    @media(max-width:640px){.tab{padding:11px 13px;font-size:.82rem}}
+    .hero{background:linear-gradient(135deg,#003366,#0a4f8a 55%,#2a78d6);color:#fff;padding:48px 0 40px}
+    .hero.vaf{background:linear-gradient(135deg,#0a2a1e,#0f5132 55%,#1a7a4a)}
+    .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;opacity:.85;margin:0 0 10px}
+    .hero h1{margin:0;font-size:clamp(1.7rem,4.5vw,2.6rem);line-height:1.12;font-weight:800}
+    .hero h1 span{font-weight:400;opacity:.92}
+    .lead{max-width:70ch;margin:16px 0 24px;opacity:.94}
+    .badges{display:flex;flex-wrap:wrap;gap:12px}
+    .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;backdrop-filter:blur(4px)}
+    .badge .k{display:block;font-size:.72rem;opacity:.85;text-transform:uppercase;letter-spacing:.04em}
+    .badge b{font-size:1.15rem}
+    main{padding:28px 0 40px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin:22px 0;box-shadow:0 1px 3px rgba(16,35,58,.05)}
+    h2{margin:0 0 4px;font-size:1.45rem;color:var(--navy)}
+    h3{color:var(--navy);margin:22px 0 8px;font-size:1.05rem}
+    .muted{color:var(--muted);margin:.2rem 0 1rem}
+    .presets{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    .presets button{padding:9px 16px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:9px;cursor:pointer;font-weight:600;font-size:.85rem}
+    .presets button.alt{background:#fff;color:var(--blue)}
+    .presets button:hover{opacity:.9}
+    .sim-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:26px;align-items:start}
+    @media(max-width:820px){.sim-grid{grid-template-columns:1fr}}
+    .controls label{display:block;font-size:.85rem;font-weight:600;color:var(--ink);margin:0 0 14px}
+    .controls output{float:right;font-weight:700;color:var(--blue)}
+    .controls input[type=range]{width:100%;margin-top:6px;accent-color:#1a7a4a}
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+    .kpi span{display:block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+    .kpi b{font-size:1.2rem}
+    .kpi.big{grid-column:span 3}
+    @media(max-width:560px){.kpi.big{grid-column:span 2}}
+    .kpi.big b{font-size:1.9rem}
+    .kpi-b.pos,td.pos{color:var(--pos)} .kpi-b.neg,td.neg{color:var(--neg)}
+    b.pos{color:var(--pos)} b.neg{color:var(--neg)}
+    .chart{margin:8px 0 12px}
+    .legend{display:flex;gap:18px;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+    .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+    .tablewrap{overflow-x:auto}
+    table{border-collapse:collapse;width:100%;font-size:.85rem}
+    th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+    th{background:var(--navy);color:#fff;font-weight:600;position:sticky;top:0}
+    td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+    table.data tr:nth-child(even){background:#fafcff}
+    tr.hl td{background:#e8f6ee;font-weight:700}
+    tr.neg td{background:#fdecea}
+    .step{border-left:3px solid #1a7a4a;padding:2px 0 2px 18px;margin:18px 0}
+    code{background:#eef3fa;border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:.88rem;color:var(--navy);display:inline-block;margin:4px 0}
+    .live{background:#f0f8f1;border:1px solid #cfe9d5;border-radius:9px;padding:8px 12px;color:#0a3d1c}
+    .live b{color:#0a7a34}
+    .note{font-size:.82rem;color:var(--muted);font-style:italic;margin-top:12px}
+    .fuentes{margin:0;padding-left:20px} .fuentes li{margin:6px 0}
+    footer{background:var(--navy);color:#cfe0f2;text-align:center;padding:18px 0;font-size:.85rem;margin-top:30px}
+    @media(max-width:1024px){.wrap{padding:0 22px}}
+    @media(max-width:640px){
+      .wrap{padding:0 14px}
+      .hero{padding:34px 0 28px}
+      .card{padding:18px 15px;border-radius:13px;margin:16px 0}
+      h2{font-size:1.25rem} main{padding:18px 0 28px}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .kpi.big{grid-column:span 2}.kpi.big b{font-size:1.55rem}
+      table{font-size:.8rem} th,td{padding:6px 8px}
+      code{font-size:.8rem}
+      .step{padding-left:13px}
+    }
+    @media(max-width:400px){.kpis{grid-template-columns:1fr}.kpi.big{grid-column:span 1}}
+  </style>
+</body>
+</html>

@@ -1,0 +1,445 @@
+---
+import { P, run, escenarios, resistencia } from '../lib/model.js';
+import { parametros, remuneraciones, reactivos, aranceles, fuentes } from '../lib/data.js';
+
+const base = run({ ...P });
+const esc = escenarios();
+const res = resistencia();
+
+const fmt  = (x) => (x < 0 ? '-' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('de-DE');
+const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' M';
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulador de Factibilidad — Carrera de Bioquímica</title>
+</head>
+<body>
+  <nav class="tabs"><div class="wrap">
+    <a href={import.meta.env.BASE_URL} class="tab active">Metodología FCNE</a>
+    <a href={import.meta.env.BASE_URL + 'vaf/'} class="tab">Metodología VAF</a>
+  </div></nav>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Carrera de Bioquímica · Estudio de factibilidad económica</p>
+      <h1>Simulador de Factibilidad Económica<br /><span>Carrera de Bioquímica</span></h1>
+      <p class="lead">Modela año a año los ingresos, costos y el VAN de la carrera. Mueve los controles y todo se recalcula en vivo, con las fórmulas y los datos reales que sustentan el modelo.</p>
+      <div class="badges">
+        <div class="badge"><span class="k">VAN (10 años)</span><b id="h-van">{fmtM(base.van)}</b></div>
+        <div class="badge"><span class="k">Punto de equilibrio</span><b id="h-be">≈{Math.round(base.be)} est.</b></div>
+        <div class="badge"><span class="k">Payback</span><b id="h-pb">Año {base.payback}</b></div>
+        <div class="badge"><span class="k">Costo docente incremental</span><b>$0</b></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ============ SIMULADOR ============ -->
+    <section id="sim" class="card">
+      <h2>1 · Simulador interactivo</h2>
+      <p class="muted">Ajusta los supuestos y observa el efecto inmediato en los indicadores, la tabla y el gráfico.</p>
+      <div class="sim-grid">
+        <div class="controls">
+          <label>Vacantes / año <output id="o-vac">35</output>
+            <input id="c-vac" type="range" min="10" max="50" step="1" value="35" /></label>
+          <label>Tasa de matriculación <output id="o-mat">85%</output>
+            <input id="c-mat" type="range" min="50" max="100" step="1" value="85" /></label>
+          <label>Retención año 1 <output id="o-r1">80%</output>
+            <input id="c-r1" type="range" min="60" max="95" step="1" value="80" /></label>
+          <label>Retención años 2+ <output id="o-r2">83%</output>
+            <input id="c-r2" type="range" min="60" max="95" step="1" value="83" /></label>
+          <label>Arancel anual <output id="o-arancel">$4.500.000</output>
+            <input id="c-arancel" type="range" min="3000000" max="7000000" step="100000" value="4500000" /></label>
+          <label>Costo laboratorio / estudiante <output id="o-lab">$160.000</output>
+            <input id="c-lab" type="range" min="100000" max="300000" step="10000" value="160000" /></label>
+          <label>Overhead / estudiante <output id="o-oh">$700.000</output>
+            <input id="c-oh" type="range" min="300000" max="1000000" step="50000" value="700000" /></label>
+          <label>Inversión inicial <output id="o-inv">$14.700.000</output>
+            <input id="c-inv" type="range" min="5000000" max="60000000" step="100000" value="14700000" /></label>
+          <label>Tasa de descuento <output id="o-disc">8%</output>
+            <input id="c-disc" type="range" min="5" max="12" step="0.5" value="8" /></label>
+          <label class="switch"><input id="c-vista" type="checkbox" />
+            <span>Vista económica total (cargar costo real de la planta, ~$179 M/año)</span></label>
+          <button id="reset" type="button">Restablecer valores base</button>
+        </div>
+
+        <div class="results">
+          <div class="kpis">
+            <div class="kpi big"><span>VAN a 10 años</span><b id="r-van">{fmt(base.van)}</b></div>
+            <div class="kpi"><span>TIR</span><b id="r-tir">&gt;100%</b></div>
+            <div class="kpi"><span>Payback</span><b id="r-pb">Año {base.payback}</b></div>
+            <div class="kpi"><span>Equilibrio (matrícula)</span><b id="r-be">≈{Math.round(base.be)}</b></div>
+            <div class="kpi"><span>Matrícula en régimen</span><b id="r-reg">{Math.round(base.regimen)}</b></div>
+            <div class="kpi"><span>Nuevos / año</span><b id="r-nuevos">{Math.round(base.nuevos)}</b></div>
+          </div>
+          <div id="chart" class="chart"></div>
+          <div class="tablewrap">
+            <table id="proj">
+              <thead><tr><th>Año</th><th>Mat.</th><th>Ingresos</th><th>Costos</th><th>Resultado</th><th>Acumulado</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MEMORIA DE CÁLCULO ============ -->
+    <section class="card">
+      <h2>2 · Memoria de cálculo, paso a paso</h2>
+      <p class="muted">Cada operación se muestra tal como se realizó en el informe: la fórmula, los valores sustituidos y el resultado. Todo se recalcula en vivo con el simulador (ejemplo del <b>año 1</b>). La matrícula es un <i>valor esperado</i> por cohortes, por eso no se redondea en el cálculo. El reajuste anual es <i>f</i> = 1,035ⁿ⁻¹ (año 1: <i>f</i> = 1).</p>
+
+      <div class="step">
+        <h3>Paso 1 — Matrícula por cohortes</h3>
+        <div class="calc">
+          <div class="cl"><span class="f">nuevos/año = vacantes × tasa de matriculación</span><span class="s">= <b id="w-vac"></b> × <b id="w-tasa"></b> = <b id="w-nuevos"></b></span></div>
+          <div class="cl"><span class="f">supervivencia s = [1 ; r₁ ; r₁·r₂ ; r₁·r₂² ; r₁·r₂³]</span><span class="s">= [ <b id="w-s"></b> ]</span></div>
+          <div class="cl"><span class="f">Matrícula año 1 = nuevos × s₁ = nuevos × 1</span><span class="s">= <b id="w-mat1" class="rr"></b></span></div>
+          <div class="cl"><span class="f">Matrícula en régimen = nuevos × 3,472</span><span class="s">= <b id="w-reg1"></b> estudiantes</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Paso 2 — Ingresos (año 1)</h3>
+        <div class="calc">
+          <div class="cl"><span class="f">factor de cobranza c = (gratuidad + becas) + pago directo × (1 − morosidad)</span><span class="s">= (0,65 + 0,12) + 0,23 × 0,95 = <b id="w-cob"></b></span></div>
+          <div class="cl"><span class="f">Ingresos = Matrícula × (arancel + derecho básico) × c</span><span class="s">= <b id="w-mat2"></b> × (<b id="w-arancel"></b> + $150.000) × <b id="w-cob2"></b> = <b id="w-ing" class="rr"></b></span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Paso 3 — Costos (año 1)</h3>
+        <div class="calc">
+          <div class="cl"><span class="f">Soporte = coordinación + técnico + bioseguridad</span><span class="s">= $12.000.000 + $9.000.000 + $6.000.000 = <b id="w-sup"></b></span></div>
+          <div class="cl"><span class="f">Laboratorio = Matrícula × costo por estudiante</span><span class="s">= <b id="w-mat3"></b> × <b id="w-lab-est"></b> = <b id="w-lab"></b></span></div>
+          <div class="cl"><span class="f">Overhead = Matrícula × $700.000</span><span class="s">= <b id="w-mat4"></b> × $700.000 = <b id="w-oh"></b></span></div>
+          <div class="cl"><span class="f">Docencia (vista principal: planta ya pagada)</span><span class="s">= <b id="w-doc"></b></span></div>
+          <div class="cl"><span class="f">Costos = soporte + laboratorio + overhead + otros + docencia</span><span class="s">= <b id="w-sup2"></b> + <b id="w-lab2"></b> + <b id="w-oh2"></b> + $4.000.000 + <b id="w-doc2"></b> = <b id="w-cos" class="rr"></b></span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Paso 4 — Resultado y caja acumulada (año 1)</h3>
+        <div class="calc">
+          <div class="cl"><span class="f">Resultado = Ingresos − Costos</span><span class="s">= <b id="w-ing2"></b> − <b id="w-cos2"></b> = <b id="w-res" class="rr"></b></span></div>
+          <div class="cl"><span class="f">Caja acumulada = −Inversión inicial + Resultado</span><span class="s">= −<b id="w-inv"></b> + <b id="w-res2"></b> = <b id="w-acum" class="rr"></b></span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Paso 5 — VAN y punto de equilibrio</h3>
+        <div class="calc">
+          <div class="cl"><span class="f">VAN = −Inversión + Σ Resultadoₙ / (1 + d)ⁿ &nbsp;(d = tasa de descuento)</span><span class="s">= <b id="w-van" class="rr"></b></span></div>
+          <div class="cl"><span class="f">Punto de equilibrio (régimen): M* = costos fijos / (ingreso por est − costo variable por est)</span><span class="s">= <b id="w-fijos"></b> / (<b id="w-revps"></b> − <b id="w-varps"></b>) = <b id="w-be"></b> estudiantes</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DATOS REALES ============ -->
+    <section class="card">
+      <h2>3 · Datos reales que alimentan el modelo</h2>
+
+      <h3>Parámetros y supuestos</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Parámetro</th><th>Valor</th><th>Fuente / criterio</th></tr></thead>
+        <tbody>{parametros.map(r => <tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody></table></div>
+
+      <h3>Remuneraciones reales (planillas de remuneraciones, mayo 2026)</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Académico/a</th><th>Fuente</th><th>Cargo / jornada</th><th>Bruta mensual</th></tr></thead>
+        <tbody>{remuneraciones.map(r => <tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td class="num">{r[3]}</td></tr>)}</tbody></table></div>
+
+      <h3>Precios reales de reactivos e insumos (proveedores nacionales)</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Reactivo / insumo</th><th>Precio</th><th>Proveedor</th></tr></thead>
+        <tbody>{reactivos.map(r => <tr><td>{r[0]}</td><td class="num">{r[1]}</td><td><a href={r[3]} target="_blank" rel="noopener">{r[2]}</a></td></tr>)}</tbody></table></div>
+
+      <h3>Aranceles de referencia (2026)</h3>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Universidad</th><th>Tipo / sede</th><th>Arancel</th></tr></thead>
+        <tbody>{aranceles.map(r => <tr class={r[0].includes('Bioquímica') ? 'hl' : ''}><td>{r[0]}</td><td>{r[1]}</td><td class="num">{r[2]}</td></tr>)}</tbody></table></div>
+    </section>
+
+    <!-- ============ RESISTENCIA ============ -->
+    <section class="card">
+      <h2>4 · Prueba de resistencia a la baja captación</h2>
+      <p class="muted">¿Hasta cuántos estudiantes puede caer la matrícula y seguir siendo viable? Se corre el modelo de 10 a 1 estudiantes nuevos por año.</p>
+      <div class="tablewrap"><table class="data"><thead>
+        <tr><th>Nuevos / año</th><th>Mat. régimen</th><th>Resultado año 1</th><th>Resultado régimen</th><th>VAN 10 años</th><th>¿Crea valor?</th></tr></thead>
+        <tbody>{res.tabla.map(r => <tr class={r.van > 0 ? '' : 'neg'}>
+          <td class="num">{r.nuevos}</td><td class="num">{r.regimen.toFixed(1)}</td>
+          <td class="num">{fmt(r.res1)}</td><td class="num">{fmt(r.resReg)}</td>
+          <td class="num">{fmt(r.van)}</td><td>{r.van > 0 ? '✅ Sí' : '❌ No'}</td></tr>)}</tbody></table></div>
+      <p class="note">Umbrales de quiebre (bisección): el <b>VAN se hace cero con ≈ {res.vanCero.toFixed(2)} nuevos/año</b> (matrícula régimen ≈ 12); el resultado operacional en régimen se hace cero con ≈ {res.regCero.toFixed(2)} nuevos/año (régimen ≈ 9,5). Con 30 matriculados/año, la carrera opera muy por encima de ambos.</p>
+    </section>
+
+    <!-- ============ ESCENARIOS ============ -->
+    <section class="card">
+      <h2>5 · Escenarios canónicos (vista principal)</h2>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Escenario</th><th>Vacantes</th><th>Matrícula régimen</th><th>VAN 10 años</th></tr></thead>
+        <tbody>
+          <tr><td>Conservador</td><td class="num">25</td><td class="num">{Math.round(esc.cons.regimen)}</td><td class="num">{fmt(esc.cons.van)}</td></tr>
+          <tr class="hl"><td>Base</td><td class="num">35</td><td class="num">{Math.round(esc.base.regimen)}</td><td class="num">{fmt(esc.base.van)}</td></tr>
+          <tr><td>Optimista</td><td class="num">40</td><td class="num">{Math.round(esc.opt.regimen)}</td><td class="num">{fmt(esc.opt.van)}</td></tr>
+        </tbody></table></div>
+    </section>
+
+    <!-- ============ CONCLUSION ============ -->
+    <section class="card">
+      <h2>6 · Conclusión del modelo</h2>
+      <p class="live"><b>Con datos reales, Bioquímica es económicamente viable y no requiere contratación docente nueva: los 16 académicos/as ya son planta de la Facultad.</b></p>
+      <p>El modelo muestra:</p>
+      <ul class="fuentes">
+        <li><b>Sin nuevas contrataciones:</b> VAN $2.137.105.744, caja positiva desde el año 1, equilibrio ≈10 estudiantes.</li>
+        <li><b>Aun cargando el costo real de la planta</b> (~$179M/año, planillas de remuneraciones): VAN $1.074.236.034, equilibrio ≈57 estudiantes, holgadamente cubierto por el régimen de ≈103.</li>
+        <li><b>Inversión inicial muy acotada</b> (~$14,7M): el equipamiento molecular está prácticamente completo (solo falta el equipo de Western Blot, $1,7M) y los laboratorios ya tienen las adecuaciones de bioseguridad.</li>
+      </ul>
+    </section>
+
+    <!-- ============ FUENTES ============ -->
+    <section class="card">
+      <h2>7 · Fuentes</h2>
+      <ul class="fuentes">{fuentes.map(f => <li><b>{f[0]}:</b> {f[1]}</li>)}</ul>
+      <p class="note">Modelo determinístico reproducible. Las cifras son referenciales; su validación definitiva corresponde a las unidades institucionales competentes (Finanzas, RR.HH., Facultad).</p>
+    </section>
+  </main>
+
+  <footer><div class="wrap">Simulador de factibilidad · Carrera de Bioquímica · {new Date().getFullYear()}</div></footer>
+
+  <script>
+    import { P, run } from '../lib/model.js';
+    const $ = (id) => document.getElementById(id);
+    const fmt  = (x) => (x < 0 ? '-' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('de-DE');
+    const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' M';
+    const pct  = (x) => x.toFixed(0) + '%';
+
+    function readP() {
+      const p = { ...P };
+      p.vac = +$('c-vac').value;
+      p.tasaMat = +$('c-mat').value / 100;
+      p.ret1 = +$('c-r1').value / 100;
+      p.ret2 = +$('c-r2').value / 100;
+      p.arancel0 = +$('c-arancel').value;
+      p.labEst = +$('c-lab').value;
+      p.overheadEst = +$('c-oh').value;
+      p.invInicial = +$('c-inv').value;
+      p.disc = +$('c-disc').value / 100;
+      p.docenteFrac = $('c-vista').checked ? 1 : 0;
+      return p;
+    }
+
+    let lastRows = null;
+    function drawChart(rows) {
+      lastRows = rows;
+      const el = $('chart');
+      // ancho real del contenedor → gráfico responsivo que usa todo el espacio disponible
+      const W = Math.max(Math.round(el.clientWidth) || 720, 300);
+      const H = W < 520 ? 280 : 350;
+      const pad = { l: 44, r: 14, t: 30, b: 30 };
+      const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      const max = Math.max(...rows.map(r => Math.max(r.ingresos, r.costos))) * 1.16 || 1;
+      const colW = iw / rows.length;
+      const x = (i) => pad.l + (i + 0.5) * colW;
+      const y = (v) => pad.t + ih - (v / max) * ih;
+      const bw = Math.min(colW * 0.34, 30);
+      const M = (v) => (v / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 0 });
+      // etiquetas de valor sólo cuando hay espacio suficiente por columna
+      const showBar = colW >= 46, fs = colW < 62 ? 8 : 9;
+      let bars = '', line = '', dots = '', labels = '', vlab = '';
+      rows.forEach((r, i) => {
+        const cx = x(i), xi = cx - bw - 2, xc = cx + 2;
+        bars += `<rect x="${xi}" y="${y(r.ingresos)}" width="${bw}" height="${pad.t + ih - y(r.ingresos)}" rx="2" fill="#2a78d6"/>`;
+        bars += `<rect x="${xc}" y="${y(r.costos)}" width="${bw}" height="${pad.t + ih - y(r.costos)}" rx="2" fill="#c3c2b7"/>`;
+        line += (i ? 'L' : 'M') + cx + ' ' + y(r.resultado) + ' ';
+        dots += `<circle cx="${cx}" cy="${y(r.resultado)}" r="3.2" fill="#0ca30c"/>`;
+        labels += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#898781">${r.n}</text>`;
+        if (showBar) {
+          vlab += `<text x="${xi + bw / 2}" y="${y(r.ingresos) - 4}" text-anchor="middle" font-size="${fs}" fill="#1c5aa8" font-weight="600">${M(r.ingresos)}</text>`;
+          vlab += `<text x="${xc + bw / 2}" y="${y(r.costos) - 4}" text-anchor="middle" font-size="${fs}" fill="#7d7b73" font-weight="600">${M(r.costos)}</text>`;
+        }
+        vlab += `<text x="${cx}" y="${y(r.resultado) - 8}" text-anchor="middle" font-size="${fs + 1}" fill="#0a7a34" font-weight="700">${M(r.resultado)}</text>`;
+      });
+      let grid = '';
+      for (let g = 0; g <= 4; g++) {
+        const gy = pad.t + ih - (g / 4) * ih, val = (max * g / 4) / 1e6;
+        grid += `<line x1="${pad.l}" y1="${gy}" x2="${W - pad.r}" y2="${gy}" stroke="#e1e0d9"/>`;
+        grid += `<text x="${pad.l - 8}" y="${gy + 3}" text-anchor="end" font-size="10" fill="#898781">${val.toFixed(0)}</text>`;
+      }
+      el.innerHTML =
+        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Proyección de ingresos, costos y resultado a 10 años">${grid}${bars}<path d="${line}" fill="none" stroke="#0ca30c" stroke-width="2.2"/>${dots}${labels}${vlab}
+        <text x="${pad.l - 8}" y="14" font-size="10" fill="#898781">Millones de $ (CLP)</text></svg>
+        <div class="legend"><span><i style="background:#2a78d6"></i>Ingresos</span><span><i style="background:#c3c2b7"></i>Costos</span><span><i style="background:#0ca30c"></i>Resultado</span></div>`;
+    }
+
+    function update() {
+      const p = readP(), r = run(p);
+      // etiquetas de controles
+      $('o-vac').textContent = p.vac;
+      $('o-mat').textContent = pct(p.tasaMat * 100);
+      $('o-r1').textContent = pct(p.ret1 * 100);
+      $('o-r2').textContent = pct(p.ret2 * 100);
+      $('o-arancel').textContent = fmt(p.arancel0);
+      $('o-lab').textContent = fmt(p.labEst);
+      $('o-oh').textContent = fmt(p.overheadEst);
+      $('o-inv').textContent = fmt(p.invInicial);
+      $('o-disc').textContent = (p.disc * 100).toFixed(1) + '%';
+      // KPIs
+      const tirTxt = (r.tir == null || r.tir > 1) ? '>100%' : (r.tir * 100).toFixed(1) + '%';
+      $('r-van').textContent = fmt(r.van);
+      $('r-van').className = 'kpi-b ' + (r.van >= 0 ? 'pos' : 'neg');
+      $('r-tir').textContent = tirTxt;
+      $('r-pb').textContent = r.payback ? 'Año ' + r.payback : '—';
+      $('r-be').textContent = '≈' + Math.round(r.be);
+      $('r-reg').textContent = Math.round(r.regimen);
+      $('r-nuevos').textContent = Math.round(r.nuevos);
+      $('h-van').textContent = fmtM(r.van);
+      $('h-be').textContent = '≈' + Math.round(r.be) + ' est.';
+      $('h-pb').textContent = r.payback ? 'Año ' + r.payback : '—';
+      // tabla
+      const tb = document.querySelector('#proj tbody');
+      tb.innerHTML = r.rows.map(row =>
+        `<tr><td class="num">${row.n}</td><td class="num">${Math.round(row.mat)}</td><td class="num">${fmt(row.ingresos)}</td><td class="num">${fmt(row.costos)}</td><td class="num ${row.resultado>=0?'pos':'neg'}">${fmt(row.resultado)}</td><td class="num ${row.acum>=0?'pos':'neg'}">${fmt(row.acum)}</td></tr>`).join('');
+      // gráfico
+      drawChart(r.rows);
+      // memoria de cálculo (año 1) — valores sustituidos tal como en el informe
+      const r1 = r.rows[0], c = r.factorCobranza;
+      const S = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+      const dec = (x, d) => x.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
+      const nuevos = p.vac * p.tasaMat;
+      const surv = [1, p.ret1, p.ret1 * p.ret2, p.ret1 * p.ret2 * p.ret2, p.ret1 * p.ret2 * p.ret2 * p.ret2];
+      // Paso 1
+      S('w-vac', p.vac);
+      S('w-tasa', dec(p.tasaMat, 2));
+      S('w-nuevos', dec(nuevos, 2));
+      S('w-s', surv.map(v => dec(v, 3)).join(' ; '));
+      S('w-mat1', dec(r1.mat, 2));
+      S('w-reg1', dec(r.regimen, 1));
+      // Paso 2
+      S('w-cob', dec(c, 4)); S('w-cob2', dec(c, 4));
+      S('w-mat2', dec(r1.mat, 2));
+      S('w-arancel', fmt(p.arancel0));
+      S('w-ing', fmt(r1.ingresos));
+      // Paso 3
+      const soporte = r1.support;
+      S('w-sup', fmt(soporte)); S('w-sup2', fmt(soporte));
+      S('w-mat3', dec(r1.mat, 2)); S('w-mat4', dec(r1.mat, 2));
+      S('w-lab-est', fmt(p.labEst));
+      S('w-lab', fmt(r1.lab)); S('w-lab2', fmt(r1.lab));
+      S('w-oh', fmt(r1.overhead)); S('w-oh2', fmt(r1.overhead));
+      S('w-doc', fmt(r1.docentes)); S('w-doc2', fmt(r1.docentes));
+      S('w-cos', fmt(r1.costos));
+      // Paso 4
+      S('w-ing2', fmt(r1.ingresos));
+      S('w-cos2', fmt(r1.costos));
+      S('w-res', fmt(r1.resultado));
+      S('w-inv', fmt(p.invInicial));
+      S('w-res2', fmt(r1.resultado));
+      S('w-acum', fmt(r1.acum));
+      // Paso 5
+      S('w-van', fmt(r.van));
+      S('w-fijos', fmt(r.fijos));
+      S('w-revps', fmt(r.revPs));
+      S('w-varps', fmt(r.varPs));
+      S('w-be', '≈' + Math.round(r.be));
+    }
+
+    let rT;
+    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (lastRows) drawChart(lastRows); }, 150); });
+    document.querySelectorAll('#sim input').forEach(el => el.addEventListener('input', update));
+    $('reset').addEventListener('click', () => {
+      const d = { 'c-vac':35,'c-mat':85,'c-r1':80,'c-r2':83,'c-arancel':4500000,'c-lab':160000,'c-oh':700000,'c-inv':14700000,'c-disc':8 };
+      for (const k in d) $(k).value = d[k];
+      $('c-vista').checked = false;
+      update();
+    });
+    update();
+  </script>
+
+  <style is:global>
+    :root{--navy:#003366;--blue:#2a78d6;--ink:#12233a;--muted:#5b6b7c;--line:#e3e8ef;--card:#fff;--bg:#f4f7fb;--pos:#0a7a34;--neg:#c0392b}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.55}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 32px}
+    a{color:var(--blue)}
+    .tabs{background:#00284d;border-bottom:3px solid var(--blue);position:sticky;top:0;z-index:30}
+    .tabs .wrap{display:flex;gap:4px}
+    .tab{color:#bcd4ee;text-decoration:none;padding:13px 22px;font-weight:600;font-size:.92rem;border-bottom:3px solid transparent;margin-bottom:-3px;transition:.15s}
+    .tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+    .tab.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.12)}
+    @media(max-width:640px){.tab{padding:11px 13px;font-size:.82rem}}
+    .hero{background:linear-gradient(135deg,#003366,#0a4f8a 55%,#2a78d6);color:#fff;padding:48px 0 40px}
+    .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;opacity:.85;margin:0 0 10px}
+    .hero h1{margin:0;font-size:clamp(1.7rem,4.5vw,2.6rem);line-height:1.12;font-weight:800}
+    .hero h1 span{font-weight:400;opacity:.92}
+    .lead{max-width:60ch;margin:16px 0 24px;opacity:.94}
+    .badges{display:flex;flex-wrap:wrap;gap:12px}
+    .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;backdrop-filter:blur(4px)}
+    .badge .k{display:block;font-size:.72rem;opacity:.85;text-transform:uppercase;letter-spacing:.04em}
+    .badge b{font-size:1.15rem}
+    main{padding:28px 0 40px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin:22px 0;box-shadow:0 1px 3px rgba(16,35,58,.05)}
+    h2{margin:0 0 4px;font-size:1.45rem;color:var(--navy)}
+    h3{color:var(--navy);margin:22px 0 8px;font-size:1.05rem}
+    .muted{color:var(--muted);margin:.2rem 0 1rem}
+    .sim-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:26px;align-items:start}
+    @media(max-width:820px){.sim-grid{grid-template-columns:1fr}}
+    .controls label{display:block;font-size:.85rem;font-weight:600;color:var(--ink);margin:0 0 14px}
+    .controls output{float:right;font-weight:700;color:var(--blue)}
+    .controls input[type=range]{width:100%;margin-top:6px;accent-color:var(--blue)}
+    .controls .switch{display:flex;gap:8px;align-items:flex-start;font-weight:500;color:var(--muted)}
+    .controls .switch input{margin-top:3px}
+    #reset{margin-top:6px;width:100%;padding:9px;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;font-weight:600;color:var(--navy)}
+    #reset:hover{background:var(--bg)}
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+    .kpi span{display:block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+    .kpi b{font-size:1.2rem}
+    .kpi.big{grid-column:span 3}
+    @media(max-width:560px){.kpi.big{grid-column:span 2}}
+    .kpi.big b{font-size:1.9rem}
+    .kpi-b.pos,td.pos{color:var(--pos)} .kpi-b.neg,td.neg{color:var(--neg)}
+    .chart{margin:8px 0 12px}
+    .legend{display:flex;gap:18px;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:4px}
+    .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+    .tablewrap{overflow-x:auto}
+    table{border-collapse:collapse;width:100%;font-size:.85rem}
+    th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+    th{background:var(--navy);color:#fff;font-weight:600;position:sticky;top:0}
+    td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+    table.data tr:nth-child(even){background:#fafcff}
+    tr.hl td{background:#eaf3ff;font-weight:700}
+    tr.neg td{background:#fdecea}
+    .step{border-left:3px solid var(--blue);padding:2px 0 2px 18px;margin:18px 0}
+    code{background:#eef3fa;border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:.9rem;color:var(--navy);display:inline-block;margin:4px 0}
+    .live{background:#f0f8f1;border:1px solid #cfe9d5;border-radius:9px;padding:8px 12px;color:#0a3d1c}
+    .live b{color:#0a7a34}
+    .calc{margin:8px 0}
+    .cl{display:flex;flex-wrap:wrap;gap:2px 16px;align-items:baseline;padding:8px 12px;border-radius:8px}
+    .cl:nth-child(odd){background:#f6f9fd}
+    .cl .f{flex:1 1 320px;color:var(--muted);font-family:'Cascadia Code',Consolas,'Courier New',monospace;font-size:.82rem}
+    .cl .s{flex:1 1 300px;font-size:.9rem;font-variant-numeric:tabular-nums}
+    .cl .s b{color:var(--navy);font-weight:700}
+    .cl .s b.rr{color:#0a7a34}
+    @media(max-width:560px){.cl .f,.cl .s{flex-basis:100%}}
+    .note{font-size:.82rem;color:var(--muted);font-style:italic;margin-top:12px}
+    .fuentes{margin:0;padding-left:20px} .fuentes li{margin:5px 0}
+    footer{background:var(--navy);color:#cfe0f2;text-align:center;padding:18px 0;font-size:.85rem;margin-top:30px}
+    /* --- Responsivo --- */
+    @media(max-width:1024px){.wrap{padding:0 22px}}
+    @media(max-width:640px){
+      .wrap{padding:0 14px}
+      .hero{padding:34px 0 28px}
+      .card{padding:18px 15px;border-radius:13px;margin:16px 0}
+      h2{font-size:1.25rem}
+      main{padding:18px 0 28px}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .kpi.big{grid-column:span 2}
+      .kpi.big b{font-size:1.55rem}
+      table{font-size:.8rem}
+      th,td{padding:6px 8px}
+      code{font-size:.82rem;white-space:nowrap}
+      .step{padding-left:13px}
+    }
+    @media(max-width:400px){.kpis{grid-template-columns:1fr}.kpi.big{grid-column:span 1}}
+  </style>
+</body>
+</html>
