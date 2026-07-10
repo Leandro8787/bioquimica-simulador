@@ -82,6 +82,7 @@ const horizontes = [5, 6, 7, 8, 10];
             <div class="kpi"><span>Matrícula régimen</span><b id="r-reg">{Math.round(base.regimen)}</b></div>
             <div class="kpi"><span>Cruce a VAN ≥ 0</span><b id="r-cruce">Año {cruce}</b></div>
           </div>
+          <p class="charttitle">Flujo anual del proyecto (millones $)</p>
           <div id="vchart" class="chart"></div>
           <div class="tablewrap">
             <table id="vproj">
@@ -222,32 +223,44 @@ const horizontes = [5, 6, 7, 8, 10];
       const el = $('vchart');
       const W = Math.max(Math.round(el.clientWidth) || 720, 300);
       const H = W < 520 ? 280 : 340;
-      const pad = { l: 46, r: 14, t: 26, b: 30 };
+      const pad = { l: 52, r: 14, t: 30, b: 42 };
       const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-      const vals = rows.map(r => r.flujo).concat(rows.map(r => r.acum));
-      const mx = Math.max(...vals, 0), mn = Math.min(...vals, 0);
-      const span = (mx - mn) * 1.15 || 1;
+      // Solo flujo anual (barras). La caja acumulada tiene otra escala → va en la tabla.
+      const fl = rows.map(r => r.flujo);
+      const mx = Math.max(...fl, 0), mn = Math.min(...fl, 0);
+      const span = (mx - mn) * 1.18 || 1;
       const colW = iw / rows.length;
       const x = (i) => pad.l + (i + 0.5) * colW;
       const y = (v) => pad.t + ih - ((v - mn) / span) * ih;
-      const y0 = y(0), bw = Math.min(colW * 0.42, 34);
-      const showLab = colW >= 42, fs = colW < 60 ? 8 : 9;
-      let bars = '', line = '', dots = '', lbl = '', vlab = '';
+      const y0 = y(0), bw = Math.min(colW * 0.5, 46);
+      const fs = colW < 60 ? 9 : 10;
+      // líneas guía horizontales + rótulos del eje Y
+      let grid = '', bars = '', lbl = '', vlab = '';
+      const step = niceStep(span / 4);
+      for (let g = Math.ceil(mn / step) * step; g <= mx; g += step) {
+        const gy = y(g);
+        grid += `<line x1="${pad.l}" y1="${gy}" x2="${W - pad.r}" y2="${gy}" stroke="${g === 0 ? '#8a97a5' : '#e6ebf1'}" stroke-width="${g === 0 ? 1.2 : 1}"/>`;
+        grid += `<text x="${pad.l - 8}" y="${gy + 3}" text-anchor="end" font-size="9" fill="#898781">${Math.round(g / 1e6)}</text>`;
+      }
       rows.forEach((r, i) => {
         const cx = x(i), yy = y(r.flujo);
-        const col = r.flujo >= 0 ? '#0a7a34' : '#c0392b';
-        bars += `<rect x="${cx - bw / 2}" y="${Math.min(yy, y0)}" width="${bw}" height="${Math.abs(yy - y0)}" rx="2" fill="${col}"/>`;
-        line += (i ? 'L' : 'M') + cx + ' ' + y(r.acum) + ' ';
-        dots += `<circle cx="${cx}" cy="${y(r.acum)}" r="3" fill="#2a78d6"/>`;
-        lbl += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#898781">${r.n}</text>`;
-        if (showLab) vlab += `<text x="${cx}" y="${r.flujo >= 0 ? yy - 4 : yy + 12}" text-anchor="middle" font-size="${fs}" fill="${col}" font-weight="700">${M(r.flujo)}</text>`;
+        const col = r.flujo >= 0 ? '#1a7a4a' : '#c0392b';
+        bars += `<rect x="${cx - bw / 2}" y="${Math.min(yy, y0)}" width="${bw}" height="${Math.max(2, Math.abs(yy - y0))}" rx="2" fill="${col}"/>`;
+        lbl += `<text x="${cx}" y="${H - 22}" text-anchor="middle" font-size="10" fill="#5b6b7c">Año ${r.n}</text>`;
+        vlab += `<text x="${cx}" y="${r.flujo >= 0 ? yy - 5 : yy + 13}" text-anchor="middle" font-size="${fs}" fill="${col}" font-weight="700">${M(r.flujo)}</text>`;
       });
       el.innerHTML =
-        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Flujo y caja acumulada">
-          <line x1="${pad.l}" y1="${y0}" x2="${W - pad.r}" y2="${y0}" stroke="#b9c4d0"/>
-          ${bars}<path d="${line}" fill="none" stroke="#2a78d6" stroke-width="2"/>${dots}${lbl}${vlab}
-          <text x="${pad.l - 8}" y="14" font-size="10" fill="#898781">Millones de $ (CLP)</text></svg>
-        <div class="legend"><span><i style="background:#0a7a34"></i>Flujo (+)</span><span><i style="background:#c0392b"></i>Flujo (−)</span><span><i style="background:#2a78d6"></i>Caja acumulada</span></div>`;
+        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Flujo anual del proyecto">
+          ${grid}${bars}${lbl}${vlab}
+          <text x="${pad.l - 8}" y="16" text-anchor="start" font-size="10" fill="#898781">Millones de $ (CLP)</text></svg>
+        <div class="legend"><span><i style="background:#1a7a4a"></i>Flujo positivo</span><span><i style="background:#c0392b"></i>Flujo negativo</span><span class="muted2">La caja acumulada se detalla en la tabla ↓</span></div>`;
+    }
+
+    // Paso "redondo" para la grilla (1,2,5 × 10ⁿ)
+    function niceStep(raw) {
+      const p = Math.pow(10, Math.floor(Math.log10(raw)));
+      const n = raw / p;
+      return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
     }
 
     function update() {
@@ -348,6 +361,8 @@ const horizontes = [5, 6, 7, 8, 10];
     b.pos{color:var(--pos)} b.neg{color:var(--neg)}
     .chart{margin:8px 0 12px}
     .legend{display:flex;gap:18px;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+    .legend .muted2{color:#9aa7b4;font-style:italic}
+    .charttitle{text-align:center;font-size:.85rem;font-weight:600;color:var(--navy);margin:6px 0 0}
     .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
     .tablewrap{overflow-x:auto}
     table{border-collapse:collapse;width:100%;font-size:.85rem}
