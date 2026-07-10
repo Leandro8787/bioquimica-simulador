@@ -9,8 +9,8 @@ export const parametros = [
   ['Arancel · derecho básico', '$4.500.000 · $150.000', 'Posicionamiento entre UVM y PUCV'],
   ['Factor de cobranza', '0,9885', '65% gratuidad + 12% becas + 23% pago directo, 5% morosidad'],
   ['Costo docente (vista principal)', '$0 incremental', 'Planta ya existente (16 académicos/as)'],
-  ['Soporte', 'Coord. $12M + técnico $9M (×1,5 año 3) + bioseg. $6M', 'Presupuesto real Q&F'],
-  ['Laboratorio (reactivos)', '$160.000 / estudiante / año', 'Precios reales de proveedores nacionales'],
+  ['Soporte', 'Coord. $12M + técnico $9M (×1,5 año 3) + bioseg. $6M', 'Presupuesto de Q&F'],
+  ['Laboratorio (reactivos)', '$160.000 / estudiante / año', 'Precios de proveedores nacionales'],
   ['Overhead (indirectos)', '$700.000 / estudiante / año', 'Referencial per cápita'],
   ['Inversión inicial', '$14.700.000', 'Equipamiento casi completo + Western Blot'],
 ];
@@ -171,7 +171,7 @@ export const potenciales = [
 
 export const fuentes = [
   ['Remuneraciones', 'Planillas de remuneraciones — Planta y Contrata (mayo 2026)'],
-  ['Costos de operación', 'Presupuesto real de la carrera de Química y Farmacia (misma Facultad)'],
+  ['Costos de operación', 'Presupuesto de la carrera de Química y Farmacia (misma Facultad)'],
   ['Malla curricular', 'Plan Formativo 2027 — 30 de junio de 2026'],
   ['Aranceles de referencia', 'Sitios de admisión de cada universidad'],
   ['Precios de reactivos', 'Distribuidores nacionales (Gene X-Press, TAAG-ls, Prodelab, Bioquimica.cl)'],
