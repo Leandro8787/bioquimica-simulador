@@ -1,4 +1,4 @@
-// Datos reales usados en el modelo (con fuentes)
+// Datos reales usados en el modelo (con fuentes). Personas anonimizadas.
 
 export const parametros = [
   ['Horizonte de evaluación', '10 años', 'Malla de 10 semestres'],
@@ -15,42 +15,158 @@ export const parametros = [
   ['Inversión inicial', '$14.700.000', 'Equipamiento casi completo + Western Blot'],
 ];
 
-// Muestra de remuneraciones reales (planillas de remuneraciones, mayo 2026)
+// Remuneraciones reales de los 16 académicos/as del cuerpo (anonimizadas)
 export const remuneraciones = [
-  ['Académico/a 1', 'Contrata', 'Jornada completa', '$4.189.966'],
-  ['Académico/a 2', 'Contrata', 'Jornada completa', '$3.587.370'],
-  ['Académico/a 3', 'Contrata', 'Dirección de Carrera', '$3.814.965'],
-  ['Académico/a 4', 'Contrata', 'Jornada completa', '$3.096.616'],
-  ['Académico/a 5', 'Contrata', 'Jornada completa', '$2.924.557'],
-  ['Académico/a 6', 'Contrata', 'Jornada completa', '$2.613.476'],
-  ['Académico/a 7', 'Contrata', 'Jornada completa', '$2.422.107'],
-  ['Académico/a 8', 'Planta', 'Dirección General de Investigación', '$4.024.533'],
-  ['Académico/a 9', 'Planta', 'Dirección General de Centro', '$4.331.538'],
-  ['Académico/a 10', 'Planta', 'Jornada completa', '$3.961.627'],
-];
-
-// Precios reales de reactivos e insumos (proveedores nacionales, 2026)
-export const reactivos = [
-  ['Taq polimerasa 500 U (con buffer, dNTPs)', '$39.500', 'TAAG-ls', 'https://taag-ls.cl/products/adn-polimerasa-taq-500u'],
-  ['Kit extracción ADN genómico (50 preps)', '$138.500', 'Gene X-Press', 'https://genexpress.cl/producto/e-z-n-a-tissue-dna-kit'],
-  ['GelRed — tinción de ADN', '$152.000', 'Gene X-Press', 'https://genexpress.cl/producto/gelred-nucleic-acid-gel-stain-10000x-no-toxico'],
-  ['Enzimas de restricción (EcoRI/HindIII/BamHI)', '$99.000 c/u', 'Gene X-Press', 'https://genexpress.cl/producto/eco-r-i'],
-  ['Agar nutritivo granulado 500 g', '$151.827', 'Prodelab', 'https://prodelab.cl/productos/insumos-laboratorio/reactivos/agar-nutritivo-granulado-500-g'],
-  ['Agar Mueller Hinton II 500 g', '$169.932', 'Prodelab', 'https://prodelab.cl/productos/insumos-laboratorio/reactivos/agar-mueller-hinton-ii'],
-  ['Kit de tinción de Gram (100 mL)', '$37.684', 'Bioquimica.cl', 'https://bioquimica.cl/producto/kit-de-tincion-gram-100-ml'],
-  ['Guantes de nitrilo (caja 100)', '$8.072', 'Prodelab', 'https://prodelab.cl/productos/insumos-laboratorio/proteccion-personal-insumos-laboratorio/guantes-de-nitrilo-talla-m-caja-100-unidades'],
+  ['Académico/a 1', 'Contrata', '$3.587.370', '$3.784.675'],
+  ['Académico/a 2', 'Contrata', '$2.422.107', '$2.555.322'],
+  ['Académico/a 3', 'Contrata', '$2.087.177', '$2.201.971'],
+  ['Académico/a 4', 'Contrata', '$2.924.557', '$3.085.407'],
+  ['Académico/a 5', 'Planta', '$4.024.533', '$4.245.882'],
+  ['Académico/a 6', 'Contrata', '$2.613.476', '$2.757.217'],
+  ['Académico/a 7', 'Planta', '$4.331.538', '$4.569.772'],
+  ['Académico/a 8', 'Contrata', '$4.189.966', '$4.420.414'],
+  ['Académico/a 9', 'Planta', '$3.961.627', '$4.179.516'],
+  ['Académico/a 10', 'Contrata', '$3.003.180', '$3.168.354'],
+  ['Académico/a 11', 'Contrata', '$3.096.616', '$3.266.929'],
+  ['Académico/a 12', 'Contrata', '$3.814.965', '$4.024.788'],
+  ['Académico/a 13', 'Planta', '$4.124.007', '$4.350.827'],
+  ['Académico/a 14', 'Contrata', '$3.344.966', '$3.528.939'],
+  ['Académico/a 15', 'Contrata', '$1.973.402', '$2.081.939'],
+  ['Académico/a 16', 'Contrata', '$2.443.682', '$2.578.084'],
 ];
 
 // Aranceles de referencia (2026)
 export const aranceles = [
-  ['UC — P. U. Católica', 'Privada CRUCH · Santiago', '$7.440.000'],
-  ['UACh — Austral', 'Estatal CRUCH · Valdivia', '$6.825.000'],
-  ['U. de Chile', 'Estatal CRUCH · Santiago', '$6.564.700'],
-  ['USACH', 'Estatal CRUCH · Santiago', '$5.982.000'],
-  ['PUCV', 'Privada CRUCH · Valparaíso', '$5.665.000'],
-  ['UVM — Viña del Mar', 'Privada · Viña del Mar', '$4.686.000'],
-  ['Bioquímica (propuesta)', 'Estatal CRUCH', '$4.500.000'],
-  ['Pedagogías de referencia (Física, Biología)', 'Estatal CRUCH', '$3.780.000'],
+  ['UC — P. U. Católica', 'Privada CRUCH — Santiago', '$7.440.000'],
+  ['UACh — Austral', 'Estatal CRUCH — Valdivia', '$6.825.000'],
+  ['U. de Chile', 'Estatal CRUCH — Santiago', '$6.564.700'],
+  ['USACH', 'Estatal CRUCH — Santiago', '$5.982.000'],
+  ['UVM — Viña del Mar', 'Privada — Viña del Mar', '≈$4.686.000'],
+  ['Bioquímica (PROPUESTA)', 'Estatal CRUCH', '$4.500.000'],
+];
+
+// Precios reales de reactivos e insumos (proveedores nacionales, 2026) — listado completo
+export const reactivos = [
+  ['Taq polimerasa 500 U (con buffer, dNTPs, MgCl₂)', '$39.500', 'TAAG-ls', 'taag-ls.cl/products/adn-polimerasa-taq-500u'],
+  ['Taq DNA polimerasa', '$35.000', 'Gene X-Press', 'genexpress.cl/producto/taq-dna-polymerase'],
+  ['Set dNTP (4×250 µl, 100 mM)', '$148.500', 'Gene X-Press', 'genexpress.cl/producto/dntp-set-4-x-250-µl-100-mm-each'],
+  ['GelRed — tinción de ADN (no tóxico)', '$152.000', 'Gene X-Press', 'genexpress.cl/producto/gelred-nucleic-acid-gel-stain-10000x-no-toxico'],
+  ['Safe-Green 6X (loading dye)', '$53.100', 'Gene X-Press', 'genexpress.cl/producto/safe-green-6x'],
+  ['Marcador de peso molecular 100 bp', '$96.300', 'Gene X-Press', 'genexpress.cl/producto/100-bp-dna-ladder'],
+  ['Marcador de peso molecular 1 Kb', '$86.800', 'Gene X-Press', 'genexpress.cl/producto/1-kb-dna-ladder'],
+  ['Kit extracción ADN genómico (50 preps)', '$138.500', 'Gene X-Press', 'genexpress.cl/producto/e-z-n-a-tissue-dna-kit'],
+  ['Kit extracción de ADN desde gel (50 preps)', '$91.100', 'Gene X-Press', 'genexpress.cl/producto/e-z-n-a-gel-extraction-kit'],
+  ['Kit Miniprep plásmido', '$113.000', 'Gene X-Press', 'genexpress.cl/producto/e-z-n-a-kit-miniprep-plasmidio-ii-hasta-70-ug-de-dna'],
+  ['Kit Total RNA', '$224.900', 'Gene X-Press', 'genexpress.cl/producto/e-z-n-a-total-rna-kit'],
+  ['Enzimas de restricción EcoRI / HindIII / BamHI', '$99.000 c/u', 'Gene X-Press', 'genexpress.cl/producto/eco-r-i'],
+  ['T4 DNA ligasa', '$96.300', 'Gene X-Press', 'genexpress.cl/producto/t4-dna-ligase'],
+  ['Kit de clonación (Pro Ligation-Free)', '$225.000', 'Gene X-Press', 'genexpress.cl/categoria-producto/productos-en-stock/enzimas-de-restriccion-y-clonamiento'],
+  ['Agar nutritivo granulado 500 g', '$151.827', 'Prodelab', 'prodelab.cl/productos/insumos-laboratorio/reactivos/agar-nutritivo-granulado-500-g'],
+  ['Agar Mueller Hinton II 500 g', '$169.932', 'Prodelab', 'prodelab.cl/productos/insumos-laboratorio/reactivos/agar-mueller-hinton-ii'],
+  ['Kit de tinción de Gram (100 mL)', '$37.684', 'Bioquimica.cl', 'bioquimica.cl/producto/kit-de-tincion-gram-100-ml'],
+  ['Placa Petri estéril 90×15 mm (10 u)', '$4.046', 'Prodelab', 'prodelab.cl/productos/insumos-laboratorio/biologia/placa-petri-plastico-90mm-10-unidades'],
+  ['Placa Petri estéril 90×15 mm (500 u)', '$42.000', 'TAAG-ls', 'taag-ls.cl/products/placa-petri-esteril-90x15-mm'],
+  ['Guantes de nitrilo (caja 100)', '$8.072', 'Prodelab', 'prodelab.cl/productos/insumos-laboratorio/proteccion-personal-insumos-laboratorio/guantes-de-nitrilo-talla-m-caja-100-unidades'],
+  ['Reactivos químicos puros (HCl, NaOH, acetona, etanol)', 'a cotizar', 'Soviquim / Winkler', 'soviquim.cl · winklerltda.cl'],
+  ['Indicadores (fenolftaleína)', 'a cotizar', 'DILACO / Materias Primas Chile', 'dilaco.com · materiasprimas.cl'],
+  ['Reactivos clínicos (glucosa, colesterol, transaminasas)', 'a cotizar', 'Valtek Diagnostics', 'valtek.cl'],
+];
+
+// Equipamiento científico del laboratorio ambiental aprovechable (inventario, valorizado)
+export const equipamiento = [
+  ['CTD (perfilador conductividad-temperatura-profundidad)', '1', '$ 15.339.100', 'Ciencias Oceánicas'],
+  ['Estación meteorológica', '1', '$ 7.000.000', 'Medio Ambiente y Cambio Climático'],
+  ['Micro-sensores de oxígeno (PyroStig)', '1', '$ 4.000.000', 'Ciencias Oceánicas; Ecotoxicología'],
+  ['Registrador de conductividad', '3', '$ 3.528.963', 'Monitoreo ambiental / calidad de agua'],
+  ['Medidor multipropósito', '2', '$ 5.945.240', 'Muestreo ambiental'],
+  ['Incubador DBO (demanda bioquímica de oxígeno)', '1', '$ 2.358.856', 'Microbiología Ambiental; calidad de agua'],
+  ['Multiparámetro Orion (O₂, pH, T°)', '1', '$ 2.300.000', 'Ecotoxicología; Ciencias Oceánicas'],
+  ['Medidor portátil de pH', '1', '$ 2.110.465', 'Toma de muestra en terreno'],
+  ['Sistema de fotodetección', '1', '$ 2.000.000', 'Análisis ambiental'],
+  ['Bomba peristáltica', '1', '$ 1.700.000', 'Toma de muestra'],
+  ['Medidor de turbiedad y cloro (Hanna)', '1', '$ 1.635.098', 'Calidad de agua'],
+  ['Reactor de tubos / COD (Hanna)', '1', '$ 1.044.653', 'Demanda química de oxígeno'],
+  ['Electrodos selectivos ISE: amonio, bromuro, fluoruro, O₂ disuelto (Thermo Orion)', '4', 'activo', 'Química Analítica; Ecotoxicología'],
+  ['pH-metros y electrodos adicionales (Orion/Thermo)', 'varios', 'activo', 'Química Analítica; Ambiental'],
+  ['Sonda YSI (repuestos)', '1', 'activo', 'Monitoreo en terreno'],
+  ['SUBTOTAL instrumental valorizado', '', '≈ $ 48.962.375', ''],
+];
+
+// Asignación académico–asignatura completa (45 actividades) — titulares anonimizados
+export const asignaturas = [
+  ['1', 'Química General I', '8', 'Académico/a 4', 'Dra. Química', '$2.924.557 (Contrata)'],
+  ['1', 'Biología Celular', '8', 'Académico/a 2', 'Dr. Ciencias (Biología Celular y Molecular)', '$2.422.107 (Contrata)'],
+  ['1', 'Matemáticas 1', '5', 'Académico/a 12', 'Dr. Educación Matemática', '$3.814.965 (Contrata)'],
+  ['1', 'Introducción a la Bioquímica', '4', 'Académico/a 1', 'Dra. Ciencias (Microbiología)', '$3.587.370 (Contrata)'],
+  ['1', 'Técnicas de Laboratorio', '3', 'Académico/a 2', 'Dr. Ciencias (Biología Celular y Molecular)', '$2.422.107 (Contrata)'],
+  ['1', 'TIC para vida Académica', '2', 'Oferta transversal / institucional', '—', '—'],
+  ['2', 'Química General II (incluye Lab)', '6', 'Académico/a 4', 'Dra. Química', '$2.924.557 (Contrata)'],
+  ['2', 'Bioquímica 1', '6', 'Académico/a 1', 'Dra. Ciencias (Microbiología)', '$3.587.370 (Contrata)'],
+  ['2', 'Matemáticas 2', '6', 'Académico/a 12', 'Dr. Educación Matemática', '$3.814.965 (Contrata)'],
+  ['2', 'Física 1', '4', 'Académico/a 16', 'Dr(c) Ciencias Físicas', '$2.443.682 (Contrata)'],
+  ['2', 'Química Orgánica I', '5', 'Académico/a 5', 'Dr. Ciencias (Química)', '$4.024.533 (Planta)'],
+  ['2', 'Comunicación oral y escrita en español', '3', 'Formación transversal / institucional', '—', '—'],
+  ['3', 'Química Orgánica II', '6', 'Académico/a 5', 'Dr. Ciencias (Química)', '$4.024.533 (Planta)'],
+  ['3', 'Física 2 (incluye Lab)', '6', 'Académico/a 15', 'Mg. Ciencias (Física)', '$1.973.402 (Contrata)'],
+  ['3', 'Bioquímica 2', '5', 'Académico/a 1', 'Dra. Ciencias (Microbiología)', '$3.587.370 (Contrata)'],
+  ['3', 'Sociedad y Medio Ambiente', '5', 'Académico/a 10', 'Dr. Ciencias Silvoagropecuarias y Veterinarias', '$3.003.180 (Contrata)'],
+  ['3', 'Anatomía y Fisiología', '5', 'Académico/a 13', 'Dr. Educación', '$4.124.007 (Planta)'],
+  ['3', 'Inglés — Nivel Elemental', '3', 'Oferta transversal / institucional', '—', '—'],
+  ['4', 'Química Analítica (incluye Lab)', '6', 'Académico/a 9', 'Dra. Ciencias (Química)', '$3.961.627 (Planta)'],
+  ['4', 'Fisicoquímica', '6', 'Académico/a 4', 'Dra. Química', '$2.924.557 (Contrata)'],
+  ['4', 'Fisiopatología', '6', 'Académico/a 2', 'Dr. Ciencias (Biología Celular y Molecular)', '$2.422.107 (Contrata)'],
+  ['4', 'Microbiología General (incluye Lab)', '6', 'Académico/a 11', 'Dr. Oceanografía', '$3.096.616 (Contrata)'],
+  ['4', 'Taller Integración Disciplinar', '3', 'Académico/a 11', 'Dr. Oceanografía', '$3.096.616 (Contrata)'],
+  ['4', 'Inglés — Nivel Básico', '3', 'Oferta transversal / institucional', '—', '—'],
+  ['5', 'Genética y Genómica', '6', 'Académico/a 6', 'Ph.D. Microbiología', '$2.613.476 (Contrata)'],
+  ['5', 'Biología Molecular y Lab', '6', 'Académico/a 2', 'Dr. Ciencias (Biología Celular y Molecular)', '$2.422.107 (Contrata)'],
+  ['5', 'Bioquímica y Fisiología Vegetal', '5', 'Académico/a 8', 'Dra. Ciencias del Mar', '$4.189.966 (Contrata)'],
+  ['5', 'Bioquímica Clínica', '5', 'Prestación de servicios', '—', 'Honorarios (estimado)'],
+  ['5', 'Farmacología', '5', 'Académico/a 5', 'Dr. Ciencias (Química)', '$4.024.533 (Planta)'],
+  ['5', 'Inglés — Nivel Básico Superior', '3', 'Oferta transversal / institucional', '—', '—'],
+  ['6', 'Bioestadística', '6', 'Académico/a 14', 'Dr. Políticas y Gestión Educativa', '$3.344.966 (Contrata)'],
+  ['6', 'Metodología de la Investigación', '6', 'Académico/a 6', 'Ph.D. Microbiología', '$2.613.476 (Contrata)'],
+  ['6', 'Ciencias Oceánicas', '6', 'Académico/a 8', 'Dra. Ciencias del Mar', '$4.189.966 (Contrata)'],
+  ['6', 'Vinculación Territorial y Ambiental', '4', 'Académico/a 7', 'Dra. Oceanografía', '$4.331.538 (Planta)'],
+  ['6', 'Biodiversidad y Recursos', '6', 'Académico/a 10', 'Dr. Ciencias Silvoagropecuarias y Veterinarias', '$3.003.180 (Contrata)'],
+  ['6', 'Área Formación Complementaria', '2', 'Formación transversal / institucional', '—', '—'],
+  ['7', 'Bioinformática', '6', 'Académico/a 6', 'Ph.D. Microbiología', '$2.613.476 (Contrata)'],
+  ['7', 'Microbiología Ambiental', '6', 'Académico/a 7', 'Dra. Oceanografía', '$4.331.538 (Planta)'],
+  ['7', 'Biotecnología Ambiental', '6', 'Académico/a 3', 'Dra. Biotecnología', '$2.087.177 (Contrata)'],
+  ['7', 'Unidad de Investigación 1', '6', 'Cuerpo de doctores/as investigadores/as (según línea de tesis)', '—', '—'],
+  ['7', 'Bioética', '3', 'Prestación de servicios', '—', 'Honorarios (estimado)'],
+  ['7', 'Lectura y escritura para el desarrollo profesional', '3', 'Formación transversal / institucional', '—', '—'],
+  ['8', 'Biotecnología e Ingeniería Genética', '6', 'Académico/a 3', 'Dra. Biotecnología', '$2.087.177 (Contrata)'],
+  ['8', 'Ecotoxicología', '6', 'Académico/a 1', 'Dra. Ciencias (Microbiología)', '$3.587.370 (Contrata)'],
+  ['8', 'Unidad de Investigación 2 (Licenciatura)', '5', 'Cuerpo de doctores/as investigadores/as (según línea de tesis)', '—', '—'],
+  ['8', 'Medio Ambiente y Cambio Climático', '6', 'Académico/a 7', 'Dra. Oceanografía', '$4.331.538 (Planta)'],
+  ['8', 'Taller de integración Disciplinar', '5', 'Académico/a 3', 'Dra. Biotecnología', '$2.087.177 (Contrata)'],
+  ['8', 'Área Formación Complementaria', '2', 'Formación transversal / institucional', '—', '—'],
+  ['9', 'Seminario de Título Profesional 1', '12', 'Cuerpo de doctores/as investigadores/as (según línea de tesis)', '—', '—'],
+  ['9', 'Práctica Profesional', '15', 'Académico/a 9', 'Dra. Ciencias (Química)', '$3.961.627 (Planta)'],
+  ['9', 'Sello institucional (Ciudadanía y Responsabilidad Social)', '3', 'Formación transversal / institucional', '—', '—'],
+  ['10', 'Seminario de Título Profesional 2', '17', 'Cuerpo de doctores/as investigadores/as (según línea de tesis)', '—', '—'],
+  ['10', 'Articulación post grado', '10', 'Coordinación de carrera', '—', '—'],
+  ['10', 'Sello institucional (DDHH, Género e Inclusión)', '3', 'Formación transversal / institucional', '—', '—'],
+];
+
+// Cuerpo académico potencial adicional (anonimizado)
+export const potenciales = [
+  ['Académico/a potencial 1', 'Dr. Biología Celular y Genética — Prof. Biología y Ciencias', 'Genética y Genómica; Biología Celular; Fisiopatología'],
+  ['Académico/a potencial 2', 'Dra. Biología de Poblaciones y Ecología — Bióloga', 'Microbiología Ambiental; Bioinformática; Biodiversidad y Recursos'],
+  ['Académico/a potencial 3', 'Ph.D. Estudios Marítimos — Ing. Ambiental', 'Ciencias Oceánicas; Medio Ambiente y Cambio Climático'],
+  ['Académico/a potencial 4', 'Ph.D. Ciencias de la Tierra — Ing. Agrónomo', 'Ciencias Oceánicas; Vinculación Territorial y Ambiental'],
+  ['Académico/a potencial 5', 'Dr. Geografía Física — Biólogo', 'Sociedad y Medio Ambiente; Vinculación Territorial y Ambiental'],
+  ['Académico/a potencial 6', 'Dr. Física — Lic. en Física', 'Física 1; Física 2; Fisicoquímica'],
+  ['Académico/a potencial 7', 'Dr. Ciencia de Sistemas de Control — Prof. Matemática y Computación', 'TIC para vida Académica; Bioinformática; Bioestadística'],
+  ['Académico/a potencial 8', 'Dra. Ciencias Ambientales — Arquitecta', 'Medio Ambiente y Cambio Climático; Sociedad y Medio Ambiente'],
+  ['Académico/a potencial 9', 'Mg. Morfología — Kinesiólogo', 'Anatomía y Fisiología; Fisiopatología'],
+  ['Académico/a potencial 10', 'Dr. Neurociencias y Biol. Comportamiento — Prof. Biología y Ciencias', 'Fisiopatología; Anatomía y Fisiología'],
+  ['Académico/a potencial 11', 'Mg. Ciencias Microbiológicas — Prof. Biología', 'Microbiología General; Microbiología Ambiental'],
+  ['Académico/a potencial 12', 'Mg. Áreas Silvestres y Conservación — Prof. Biología y Ciencias', 'Biodiversidad y Recursos'],
+  ['Académico/a potencial 13', 'Dr. Geografía — Diplomado Geografía', 'Vinculación Territorial y Ambiental; Sociedad y Medio Ambiente'],
+  ['Académico/a potencial 14', 'DEA Gestión Ambiental — Geógrafo', 'Vinculación Territorial y Ambiental'],
+  ['Académico/a potencial 15', 'Mg. Ecología — Lic. en Geografía', 'Biodiversidad y Recursos; Sociedad y Medio Ambiente'],
 ];
 
 export const fuentes = [
@@ -59,4 +175,5 @@ export const fuentes = [
   ['Malla curricular', 'Plan Formativo 2027 — 30 de junio de 2026'],
   ['Aranceles de referencia', 'Sitios de admisión de cada universidad'],
   ['Precios de reactivos', 'Distribuidores nacionales (Gene X-Press, TAAG-ls, Prodelab, Bioquimica.cl)'],
+  ['Equipamiento científico', 'Inventario de activos fijos del laboratorio de investigación ambiental (2020-2025)'],
 ];
