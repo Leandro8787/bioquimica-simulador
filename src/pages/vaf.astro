@@ -31,9 +31,9 @@ const horizontes = [5, 6, 7, 8, 10];
       <h1>Bioquímica bajo el método de la<br /><span>Dirección General de Finanzas</span></h1>
       <p class="lead">Evaluación con la metodología de la VAF: horizonte de 5 años, tasa social de descuento de 5,5%, provisión de no pago de 20%, overhead institucional imputado (Facultad + Administración Central) y docencia a costo marginal. Ajusta los supuestos para reproducir el cálculo del informe.</p>
       <div class="badges">
-        <div class="badge"><span class="k">VAN 5 años · base conservador</span><b id="h-v5">{fmtM(base.van)}</b></div>
-        <div class="badge"><span class="k">VAN 5 años · base Finanzas §7</span><b>{fmtM(baseF.van)}</b></div>
-        <div class="badge"><span class="k">VAN 7 años · base conservador</span><b>{fmtM(base7.van)}</b></div>
+        <div class="badge"><span class="k">VAN 5 años · escenario Finanzas §7</span><b id="h-v5">{fmtM(baseF.van)}</b></div>
+        <div class="badge"><span class="k">VAN 7 años · Finanzas §7</span><b>{fmtM(baseF7.van)}</b></div>
+        <div class="badge"><span class="k">VAN 5 años · base conservador</span><b>{fmtM(base.van)}</b></div>
         <div class="badge"><span class="k">Año de cruce a VAN ≥ 0</span><b>Año {cruce}</b></div>
       </div>
     </div>
@@ -53,14 +53,14 @@ const horizontes = [5, 6, 7, 8, 10];
         <div class="controls">
           <label>Horizonte de evaluación <output id="o-H">5 años</output>
             <input id="v-H" type="range" min="5" max="10" step="1" value="5" /></label>
-          <label>Vacantes / año <output id="o-vac">30</output>
-            <input id="v-vac" type="range" min="10" max="60" step="1" value="30" /></label>
-          <label>Retención año 1 <output id="o-r1">80%</output>
-            <input id="v-r1" type="range" min="60" max="95" step="1" value="80" /></label>
-          <label>Retención años 2+ <output id="o-r2">83%</output>
-            <input id="v-r2" type="range" min="60" max="95" step="1" value="83" /></label>
-          <label>Arancel anual <output id="o-arancel">$4.500.000</output>
-            <input id="v-arancel" type="range" min="3500000" max="6000000" step="50000" value="4500000" /></label>
+          <label>Vacantes / año <output id="o-vac">35</output>
+            <input id="v-vac" type="range" min="10" max="60" step="1" value="35" /></label>
+          <label>Retención año 1 <output id="o-r1">81%</output>
+            <input id="v-r1" type="range" min="60" max="95" step="1" value="81" /></label>
+          <label>Retención años 2+ <output id="o-r2">82%</output>
+            <input id="v-r2" type="range" min="60" max="95" step="1" value="82" /></label>
+          <label>Arancel anual <output id="o-arancel">$4.686.000</output>
+            <input id="v-arancel" type="range" min="3500000" max="6000000" step="50000" value="4686000" /></label>
           <label>Provisión de no pago <output id="o-nopago">20%</output>
             <input id="v-nopago" type="range" min="0" max="30" step="1" value="20" /></label>
           <label>Factor marginal overhead Facultad <output id="o-fFac">15%</output>
