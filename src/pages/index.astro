@@ -280,7 +280,7 @@ const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleStrin
         grid += `<text x="${pad.l - 8}" y="${gy + 3}" text-anchor="end" font-size="10" fill="#898781">${val.toFixed(0)}</text>`;
       }
       el.innerHTML =
-        `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Proyección de ingresos, costos y resultado a 10 años">${grid}${bars}<path d="${line}" fill="none" stroke="#0ca30c" stroke-width="2.2"/>${dots}${labels}${vlab}
+        `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Proyección de ingresos, costos y resultado a 10 años">${grid}${bars}<path d="${line}" fill="none" stroke="#0ca30c" stroke-width="2.2"/>${dots}${labels}${vlab}
         <text x="${pad.l - 8}" y="14" font-size="10" fill="#898781">Millones de $ (CLP)</text></svg>
         <div class="legend"><span><i style="background:#2a78d6"></i>Ingresos</span><span><i style="background:#c3c2b7"></i>Costos</span><span><i style="background:#0ca30c"></i>Resultado</span></div>`;
     }
@@ -358,7 +358,10 @@ const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleStrin
     }
 
     let rT;
-    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (lastRows) drawChart(lastRows); }, 150); });
+    const redraw = () => { if (lastRows) drawChart(lastRows); };
+    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(redraw, 150); });
+    window.addEventListener('load', redraw);
+    if (window.ResizeObserver) new ResizeObserver(() => { clearTimeout(rT); rT = setTimeout(redraw, 100); }).observe($('chart'));
     document.querySelectorAll('#sim input').forEach(el => el.addEventListener('input', update));
     $('reset').addEventListener('click', () => {
       const d = { 'c-vac':35,'c-mat':85,'c-r1':80,'c-r2':83,'c-arancel':4500000,'c-lab':160000,'c-oh':700000,'c-inv':14700000,'c-disc':8 };
@@ -401,7 +404,7 @@ const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleStrin
     @media(max-width:820px){.sim-grid{grid-template-columns:1fr}}
     .controls label{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;font-size:.85rem;font-weight:600;color:var(--ink);margin:0 0 14px;gap:2px 8px}
     .controls output{font-weight:700;color:var(--blue);text-align:right}
-    .controls input[type=range]{flex:1 1 100%;width:100%;margin-top:6px;accent-color:var(--blue);height:22px;touch-action:pan-y}
+    .controls input[type=range]{flex:1 1 100%;width:100%;margin-top:6px;accent-color:var(--blue);height:20px;touch-action:pan-y}
     .controls .switch{display:flex;gap:8px;align-items:flex-start;font-weight:500;color:var(--muted)}
     .controls .switch input{margin-top:3px}
     #reset{margin-top:6px;width:100%;padding:9px;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;font-weight:600;color:var(--navy)}
@@ -415,7 +418,8 @@ const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleStrin
     @media(max-width:560px){.kpi.big{grid-column:span 2}}
     .kpi.big b{font-size:1.9rem}
     .kpi-b.pos,td.pos{color:var(--pos)} .kpi-b.neg,td.neg{color:var(--neg)}
-    .chart{margin:8px 0 12px}
+    .chart{margin:8px 0 12px;max-width:100%;overflow:hidden}
+    .chart svg{display:block;width:100%;height:auto;max-width:100%}
     .legend{display:flex;gap:18px;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:4px}
     .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
     .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
