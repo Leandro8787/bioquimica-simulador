@@ -200,6 +200,9 @@ const horizontes = [5, 6, 7, 8, 10];
     import { PV, corre, anioCruce } from '../lib/modelVaf.js';
     const $ = (id) => document.getElementById(id);
     const fmt  = (x) => (x < 0 ? '-' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('de-DE');
+    const fmtM = (x) => (x < 0 ? '-' : '') + '$' + (Math.abs(x) / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' M';
+    const mqNarrow = window.matchMedia('(max-width:560px)');
+    const fmtC = (x) => mqNarrow.matches ? fmtM(x) : fmt(x);   // compacto (millones) en móvil
     const M = (v) => (v / 1e6).toLocaleString('es-CL', { maximumFractionDigits: 0 });
 
     function readP() {
@@ -289,7 +292,7 @@ const horizontes = [5, 6, 7, 8, 10];
 
       const tb = document.querySelector('#vproj tbody');
       tb.innerHTML = r.filas.map(f =>
-        `<tr><td class="num">${f.n}</td><td class="num">${Math.round(f.mat)}</td><td class="num">${fmt(f.neto)}</td><td class="num">${fmt(f.costosDir)}</td><td class="num">${fmt(f.oh)}</td><td class="num ${f.flujo >= 0 ? 'pos' : 'neg'}">${fmt(f.flujo)}</td><td class="num ${f.acum >= 0 ? 'pos' : 'neg'}">${fmt(f.acum)}</td></tr>`).join('');
+        `<tr><td class="num">${f.n}</td><td class="num">${Math.round(f.mat)}</td><td class="num">${fmtC(f.neto)}</td><td class="num">${fmtC(f.costosDir)}</td><td class="num">${fmtC(f.oh)}</td><td class="num ${f.flujo >= 0 ? 'pos' : 'neg'}">${fmtC(f.flujo)}</td><td class="num ${f.acum >= 0 ? 'pos' : 'neg'}">${fmtC(f.acum)}</td></tr>`).join('');
       drawChart(r.filas);
 
       // memoria de cálculo (año 1)
@@ -309,8 +312,9 @@ const horizontes = [5, 6, 7, 8, 10];
 
     let rT;
     const redraw = () => { if (lastRows) drawChart(lastRows); };
-    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(redraw, 150); });
+    window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(update, 150); });
     window.addEventListener('load', redraw);
+    if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', update);
     if (window.ResizeObserver) new ResizeObserver(() => { clearTimeout(rT); rT = setTimeout(redraw, 100); }).observe($('vchart'));
     document.querySelectorAll('#sim input').forEach(el => el.addEventListener('input', update));
     update();
