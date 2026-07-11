@@ -249,7 +249,7 @@ const horizontes = [5, 6, 7, 8, 10];
         const cx = x(i), yy = y(r.flujo);
         const col = r.flujo >= 0 ? '#1a7a4a' : '#c0392b';
         bars += `<rect x="${cx - bw / 2}" y="${Math.min(yy, y0)}" width="${bw}" height="${Math.max(2, Math.abs(yy - y0))}" rx="2" fill="${col}"/>`;
-        lbl += `<text x="${cx}" y="${H - 22}" text-anchor="middle" font-size="10" fill="#5b6b7c">Año ${r.n}</text>`;
+        lbl += `<text x="${cx}" y="${H - 22}" text-anchor="middle" font-size="10" fill="#5b6b7c">${colW < 52 ? r.n : 'Año ' + r.n}</text>`;
         vlab += `<text x="${cx}" y="${r.flujo >= 0 ? yy - 5 : yy + 13}" text-anchor="middle" font-size="${fs}" fill="${col}" font-weight="700">${M(r.flujo)}</text>`;
       });
       el.innerHTML =
